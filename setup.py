@@ -24,7 +24,7 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "greek-tv-dl = greek_tv_dl.main:app"
+            "greek-tv-dl = greek_tv_dl.main:run"
         ]
     },
     install_requires=requires

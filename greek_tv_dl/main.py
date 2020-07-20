@@ -2,12 +2,12 @@
 
 from appJar import gui
 from appJar.appjar import ItemLookupError
-from asyncio import get_event_loop, sleep, Lock
+from asyncio import get_event_loop, sleep
 
 loop = get_event_loop()
 app = gui("Greek TV Downloader", "600x300")
 
-shows = [None]
+shows = [None] #TODO: Make this prettier
 def get_shows():
     return shows[0]
 def set_shows(s):
@@ -45,8 +45,8 @@ def get_show():
             show = next(s for s in get_shows() if s.title == show[0])
             app.queueFunction(app.addLabel, "loading", "Παρακαλώ περιμένετε...")
             episodes = await show.get_episodes()
-            app.queueFunction(app.removeLabel, "loading")
             if not episodes:
+                app.queueFunction(app.removeLabel, "loading")
                 app.queueFunction(app.warningBox, show, "Δεν υπάρχουν επεισόδια προς λήψη.")
                 return
             app.queueFunction(app.openSubWindow, "eps")
@@ -55,6 +55,7 @@ def get_show():
             app.queueFunction(app.removeButton, "Λήψη")
             app.queueFunction(app.addButton, "Λήψη", lambda: download(show, episodes))
             app.queueFunction(app.stopSubWindow)
+            app.queueFunction(app.removeLabel, "loading")
             app.queueFunction(app.showSubWindow, "eps")
     loop.create_task(coro())
 
@@ -78,6 +79,27 @@ def download(show, episodes):
 
     loop.create_task(coro())
 
+def handle_menu(option):
+    if option == "Κονσόλα":
+        import code
+        code.interact(local=locals())
+    elif option == "Ρυθμίσεις":
+        pass
+    elif option == "Έξοδος":
+        app.stop()
+    elif option == "Εγχειρίδιο χρήσης":
+        pass
+    elif option == "Έλεγχος για ενημερώσεις":
+        pass
+    elif option == "Πληροφορίες":
+        app.infoBox("Greek TV Downloader", """
+Κατεβαστήρι σειρών και λοιπών σκουπιδιών από τα έγκατα των ιστοσελίδων γνωστών ελληνικών καναλιών.
+Όπως και τα περισσότερα πράγματα σε αυτή τη χώρα, δεν θα λειτουργεί απαραίτητα πάντα και μάλλον είναι παράνομο.
+
+Made by marios8543
+Enjoy ⁽⁽ଘ( ˊᵕˋ )ଓ⁾⁾
+        """, parent=None)
+
 app.addLabelOptionBox("Κανάλι", [
     "Επιλέξτε κανάλι",
     "ANT1",
@@ -88,6 +110,8 @@ app.addLabelOptionBox("Κανάλι", [
 app.setOptionBoxChangeFunction("Κανάλι", get_channel)
 app.addListBox("series", [])
 app.setListBoxChangeFunction("series", get_show)
+app.addMenuList("Αρχείο", ["Ρυθμίσεις", "-", "Κονσόλα", "-", "Έξοδος"], handle_menu)
+app.addMenuList("Βοήθεια", ["Εγχειρίδιο χρήσης", "Έλεγχος για ενημερώσεις", "Πληροφορίες"], handle_menu)
 
 app.startSubWindow("eps", title="", modal=True)
 app.addTable("episodes", [["Επεισόδια"]])
@@ -95,5 +119,9 @@ app.addLabel("help", "Επιλέξτε όσα θέλετε να κατεβάσε
 app.addButton("Λήψη", lambda _: None)
 app.stopSubWindow()
 
-app.thread(loop.run_forever)
-app.go()
+def run():
+    app.thread(loop.run_forever)
+    app.go()
+
+if __name__ == '__main__':
+    run()

@@ -1,6 +1,5 @@
 from aiohttp import ClientSession
 from pyquery import PyQuery
-from asyncio import get_event_loop
 from json import loads
 from logging import error, warn, info, basicConfig, INFO
 from os import mkdir, path
@@ -122,6 +121,3 @@ async def get_shows():
         for el in root:
             l.append(Show(el))
     return l
-
-def ruc(coro):
-    return get_event_loop().run_until_complete(coro)
