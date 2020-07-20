@@ -1,0 +1,4 @@
+aiohttp==3.5.4
+aiofiles==0.4.0
+pyquery==1.4.1
+appJar==0.94.0
