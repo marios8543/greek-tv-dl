@@ -1,4 +1,5 @@
 import setuptools
+from greek_tv_dl._version import __VERSION__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -8,7 +9,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name='Greek TV Downloader',
-    version='0.1',
+    version=__VERSION__,
     scripts=['greek-tv-dl'],
     author="marios8543",
     author_email="marios8543@gmail.com",
@@ -24,7 +25,7 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "greek-tv-dl = greek_tv_dl.main:run"
+            "greek-tv-dl = greek_tv_dl.main:main"
         ]
     },
     install_requires=requires

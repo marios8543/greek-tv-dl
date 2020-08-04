@@ -1,0 +1,3 @@
+#!C:\Users\mario\AppData\Local\Programs\Python\Python38-32\python.exe
+from greek_tv_dl.main import main
+main()

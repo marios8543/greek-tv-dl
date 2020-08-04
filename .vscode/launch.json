@@ -1,0 +1,58 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Daemon",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/greek_tv_dl/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--daemon"
+            ],
+            "env": {
+                "SAVE_DIR": "/var/run/user/1000/gvfs/sftp:host=192.168.1.11/mnt/Storage/Downloads"
+            }
+        },
+        {
+            "name": "GUI",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/greek_tv_dl/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--gui"
+            ]
+        },
+        {
+            "name": "Jobs",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/greek_tv_dl/jobs.py",
+            "console": "integratedTerminal",
+        },
+        {
+            "name": "Normal",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/greek_tv_dl/main.py",
+            "console": "integratedTerminal",
+            "env": {
+                "SAVE_DIR": "/var/run/user/1000/gvfs/sftp:host=192.168.1.11/mnt/Storage/Downloads"
+            }
+        },
+        {
+            "name": "Current file",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {
+                "SAVE_DIR": "/var/run/user/1000/gvfs/sftp:host=192.168.1.11/mnt/Storage/Downloads"
+            }
+        }
+    ]
+}
