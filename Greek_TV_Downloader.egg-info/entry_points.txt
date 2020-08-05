@@ -1,3 +1,0 @@
-[console_scripts]
-greek-tv-dl = greek_tv_dl.main:main
-
