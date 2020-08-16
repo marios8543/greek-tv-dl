@@ -2,20 +2,37 @@
 from greek_tv_dl._version import __VERSION__
 
 from aiohttp.web import Application, Response, json_response, get, _run_app, run_app, WebSocketResponse
-from asyncio import get_event_loop, sleep, run_coroutine_threadsafe
+from asyncio import new_event_loop, sleep, set_event_loop, get_event_loop, run_coroutine_threadsafe
 from logging import error
 from random import randint
-from os import getenv
-from concurrent.futures import ThreadPoolExecutor
+from os import getenv, name, path
+from concurrent.futures import ProcessPoolExecutor
 from greek_tv_dl.resources.logo import ICON
+import aiohttp_debugtoolbar
+from aiohttp.web_runner import GracefulExit
+from threading import enumerate as t_enumerate
+import ctypes
+from greek_tv_dl.main import get_config, set_config
 
-loop = get_event_loop()
-app = Application(loop=loop)
+def async_raise(thread_obj, exception):
+    target_tid = thread_obj.ident
+    if target_tid not in {thread.ident for thread in t_enumerate()}:
+        raise ValueError('Invalid thread object, cannot find thread identity among currently active threads.')
+    affected_count = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(target_tid), ctypes.py_object(exception))
+    if affected_count == 0:
+        raise ValueError('Invalid thread identity, no thread has been affected.')
+    elif affected_count > 1:
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(target_tid), ctypes.c_long(0))
+        raise SystemError("PyThreadState_SetAsyncExc failed, broke the interpreter state.")
+
+app = Application()
+aiohttp_debugtoolbar.setup(app)
 shows_cache = {}
 episodes_cache = {}
 jobs = {}
 
-SAVE_DIR = getenv("SAVE_DIR", "")
+SAVE_DIR = getenv("SAVE_DIR", get_config("save_dir", ""))
+_immutable = False
 
 class Job:
     def __init__(self, ids):
@@ -104,6 +121,16 @@ async def get_episodes(request):
             episodes_cache[i.id] = i
     return json_response([i.to_dict() for i in episodes])
 
+async def set_save_dir(request):
+    if _immutable:
+        return Response(status=403, body="save_dir_immutable")
+    global SAVE_DIR
+    directory = request.query.get("dir")
+    if path.isdir(directory):
+        SAVE_DIR = directory
+        set_config("save_dir", directory)
+        return Response(status=200, body="save_dir_set")
+
 async def add_job(request):
     episode_ids = request.query.get("episode_ids").split(",")
     job = Job(episode_ids)
@@ -149,6 +176,7 @@ app.add_routes([
     get("/info", info),
     get("/get_shows", get_shows),
     get("/get_episodes", get_episodes),
+    get("/set_save_dir", set_save_dir),
     get("/add_job", add_job),
     get("/get_jobs", get_jobs),
     get("/get_job_details", get_job_details),
@@ -160,20 +188,29 @@ app.add_routes([
 def setup_systray():
     from pystray import Icon, Menu, MenuItem
     from subprocess import Popen
+    icon = Icon("Greek TV Downloader")
+    def stop():
+        async_raise(icon._setup_thread, SystemExit())
+        icon.stop()
     menu = Menu(
-        MenuItem("Άνοιγμα", lambda: Popen("greek-tv-dl")),
-        MenuItem("Εργασίες", lambda: Popen("greek-tv-dl --jobs"))
+        MenuItem("Άνοιγμα", lambda: Popen('START /B "" greek-tv-dl' if name=='nt' else "greek-tv-dl", shell=True)),
+        MenuItem("Εργασίες", lambda: Popen('START /B "" greek-tv-dl --jobs' if name=='nt' else "greek-tv-dl --jobs", shell=True)),
+        MenuItem("Έξοδος", stop)
     )
-    icon = Icon("Greek TV Downloader", ICON, menu=menu)
-    async def coro():
-        with ThreadPoolExecutor(1) as pool:
-            loop.run_in_executor(pool, icon.run)
-    run_coroutine_threadsafe(coro(), loop)
+    icon._icon = ICON
+    icon._menu = menu
+    return icon
 
 def get_task(host, port, *args, **kwargs):
     return _run_app(app, host=host, port=port, *args, **kwargs)
 
 def run(host, port, systray=True, *args, **kwargs):
     if systray:
-        setup_systray()
-    return run_app(app, host=host, port=port, *args, **kwargs)
+        icon = setup_systray()
+        def _(i):
+            i.visible = True
+            set_event_loop(new_event_loop())
+            run_app(app, host=host, port=port, *args, **kwargs)
+        icon.run(_)
+    else:
+        run_app(app, host=host, port=port, *args, **kwargs)

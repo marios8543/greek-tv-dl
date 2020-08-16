@@ -4,7 +4,7 @@ from greek_tv_dl._version import __VERSION__
 from appJar import gui
 from asyncio import get_event_loop, sleep, Lock, run_coroutine_threadsafe
 from aiohttp import ClientSession, ClientConnectorError
-from os import getenv
+from os import getenv, name
 
 loop = get_event_loop()
 app = gui("Greek TV Downloader", "600x300", handleArgs=False)
@@ -91,9 +91,11 @@ def handle_menu(option):
         code.interact(local=locals())
     if option == "Εργασίες":
         from subprocess import Popen
-        Popen("greek-tv-dl --jobs", shell=True)
-    elif option == "Ρυθμίσεις":
-        pass
+        Popen('START /B "" greek-tv-dl --jobs' if name=='nt' else "greek-tv-dl --jobs", shell=True)
+    elif option == "Φάκελος αποθήκευσης":
+        directory = app.directoryBox(title="Φάκελος αποθήκευσης")
+        run_coroutine_threadsafe(web.get(DAEMON+'/set_save_dir', params={"dir":directory}), loop)
+        app.infoBox("Επιτυχία", "Ο φάκελος αποθήκευσης ορίστηκε.")
     elif option == "Έξοδος":
         app.stop()
     elif option == "Εγχειρίδιο χρήσης":
@@ -120,7 +122,7 @@ def run():
     app.setOptionBoxChangeFunction("Κανάλι", get_channel)
     app.addListBox("series", [])
     app.setListBoxChangeFunction("series", get_show)
-    app.addMenuList("Αρχείο", ["Ρυθμίσεις", "Εργασίες", "-", "Έξοδος"], handle_menu)
+    app.addMenuList("Αρχείο", ["Φάκελος αποθήκευσης", "Εργασίες", "-", "Έξοδος"], handle_menu)
     app.addMenuList("Βοήθεια", ["Εγχειρίδιο χρήσης", "Έλεγχος για ενημερώσεις", "Πληροφορίες"], handle_menu)
 
     app.startSubWindow("eps", title="", modal=True)
