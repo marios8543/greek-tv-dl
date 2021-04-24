@@ -14,7 +14,7 @@
                 "--daemon"
             ],
             "env": {
-                "SAVE_DIR": "/var/run/user/1000/gvfs/sftp:host=192.168.1.11/mnt/Storage/Downloads"
+                "SAVE_DIR": "~/Videos"
             }
         },
         {
@@ -41,7 +41,7 @@
             "program": "${workspaceFolder}/greek_tv_dl/main.py",
             "console": "integratedTerminal",
             "env": {
-                "SAVE_DIR": "/var/run/user/1000/gvfs/sftp:host=192.168.1.11/mnt/Storage/Downloads"
+                "SAVE_DIR": "~/Videos"
             }
         },
         {
@@ -51,7 +51,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "env": {
-                "SAVE_DIR": "/var/run/user/1000/gvfs/sftp:host=192.168.1.11/mnt/Storage/Downloads"
+                "SAVE_DIR": "~/Videos"
             }
         }
     ]
